@@ -754,7 +754,7 @@ void setup()
     }
 #endif
 
-#if  defined(GPIO_PIN_ANTENNA_SELECT) && defined(USE_DIVERSITY)
+#ifdef (GPIO_PIN_ANTENNA_SELECT)
   pinMode(GPIO_PIN_ANTENNA_SELECT, OUTPUT);
   digitalWrite(GPIO_PIN_ANTENNA_SELECT, LOW);
 #endif
