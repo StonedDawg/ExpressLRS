@@ -321,17 +321,14 @@ void ICACHE_RAM_ATTR HWtimerCallbackTock()
         int32_t rssi = (antenna == 0) ? LPF_UplinkRSSI0.SmoothDataINT : LPF_UplinkRSSI1.SmoothDataINT;
             
         // if we didn't get a packet switch the antenna
-         if ((rssi < (prevRSSI - 5) ) && antennaSwitched2 >= 30){
+         if ((rssi < (prevRSSI - 5) ) && antennaSwitched2 >= DIVERSITY_ANTENNA_INTERVAL){
             otherRSSI = rssi;
             switchAntenna();
             antennaSwitched = 1;
             antennaSwitched2 = 0; 
-         } else if(antennaSwitched2 < 30){
-             prevRSSI = rssi;
-             antennaSwitched2++;
-         } else {
-             if(rssi > prevRSSI){
+         } else if(rssi > prevRSSI || antennaSwitched2 < DIVERSITY_ANTENNA_INTERVAL){
                  prevRSSI = rssi;
+                 antennaSwitched2++;
              }
          }
         if (((!LQCALC.packetReceivedForPreviousFrame()) && antennaSwitched == 0)) {
