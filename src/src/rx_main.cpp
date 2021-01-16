@@ -330,7 +330,7 @@ void ICACHE_RAM_ATTR HWtimerCallbackTock()
                  prevRSSI = rssi;
                  antennaSwitched2++;
              }
-         }
+         
         if (((!LQCALC.packetReceivedForPreviousFrame()) && antennaSwitched == 0)) {
             otherRSSI = rssi;
             switchAntenna();
