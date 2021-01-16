@@ -326,14 +326,10 @@ void ICACHE_RAM_ATTR HWtimerCallbackTock()
             switchAntenna();
             antennaSwitched = 1;
             antennaSwitched2 = 0; 
-         } else if(antennaSwitched2 < DIVERSITY_ANTENNA_INTERVAL){
-             prevRSSI = rssi;
-             antennaSwitched2++;
-         } else { //overwrite prevrssi with stronger rssi val
-             if(rssi > prevRSSI){
+         } else if(rssi > prevRSSI || antennaSwitched2 < DIVERSITY_ANTENNA_INTERVAL){
                  prevRSSI = rssi;
+                 antennaSwitched2++;
              }
-         }
          //if there is a packet drop
         if (((!LQCALC.packetReceivedForPreviousFrame()) && antennaSwitched == 0)) {
             otherRSSI = rssi;
