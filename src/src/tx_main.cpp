@@ -81,6 +81,7 @@ LPF LPD_DownlinkLQ(1);
 volatile bool UpdateParamReq = false;
 #define OPENTX_LUA_UPDATE_INTERVAL 1000
 uint32_t LuaLastUpdated = 0;
+//luaxx
 uint8_t luaCommitPacket[7] = {(uint8_t)0xFE, thisCommit[0], thisCommit[1], thisCommit[2], thisCommit[3], thisCommit[4], thisCommit[5]};
 
 uint32_t PacketLastSentMicros = 0;
@@ -98,10 +99,12 @@ void OnTLMRatePacket(mspPacket_t *packet);
 
 uint8_t baseMac[6];
 
+//luaxx
 void ICACHE_RAM_ATTR ProcessTLMpacket()
 {
-  uint8_t calculatedCRC = ota_crc.calc(Radio.RXdataBuffer, 7) + CRCCaesarCipher;
-  uint8_t inCRC = Radio.RXdataBuffer[7];
+  //luaxx
+  uint8_t calculatedCRC = ota_crc.calc(Radio.RXdataBuffer, 10) + CRCCaesarCipher;
+  uint8_t inCRC = Radio.RXdataBuffer[10];
   uint8_t type = Radio.RXdataBuffer[0] & TLM_PACKET;
   uint8_t packetAddr = (Radio.RXdataBuffer[0] & 0b11111100) >> 2;
   uint8_t TLMheader = Radio.RXdataBuffer[1];
@@ -176,6 +179,8 @@ void ICACHE_RAM_ATTR CheckChannels5to8Change()
 void ICACHE_RAM_ATTR GenerateSyncPacketData()
 {
   uint8_t PacketHeaderAddr;
+
+  //luaxx
 #ifdef HYBRID_SWITCHES_8
   uint8_t SwitchEncMode = 0b01;
 #else
@@ -206,6 +211,9 @@ void ICACHE_RAM_ATTR Generate4ChannelData_10bit()
                           ((CRSF_to_UINT10(crsf.ChannelDataIn[1]) & 0b0000000011) << 4) +
                           ((CRSF_to_UINT10(crsf.ChannelDataIn[2]) & 0b0000000011) << 2) +
                           ((CRSF_to_UINT10(crsf.ChannelDataIn[3]) & 0b0000000011) << 0);
+  Radio.TXdataBuffer[7] = ((CRSF_to_UINT10(crsf.ChannelDataIn[4]) & 0b1111111100) >> 2);
+  Radio.TXdataBuffer[8] = ((CRSF_to_UINT10(crsf.ChannelDataIn[5]) & 0b1111111100) >> 2);
+  Radio.TXdataBuffer[9] = ((CRSF_to_UINT10(crsf.ChannelDataIn[6]) & 0b1111111100) >> 2);
 }
 
 void ICACHE_RAM_ATTR Generate4ChannelData_11bit()
@@ -285,6 +293,7 @@ void ICACHE_RAM_ATTR HandleFHSS()
   }
 }
 
+
 void ICACHE_RAM_ATTR HandleTLM()
 {
   if (ExpressLRS_currAirRate_Modparams->TLMinterval > 0)
@@ -299,6 +308,7 @@ void ICACHE_RAM_ATTR HandleTLM()
   }
 }
 
+//luaxx
 void ICACHE_RAM_ATTR SendRCdataToRF()
 {
 #ifdef FEATURE_OPENTX_SYNC
@@ -353,6 +363,7 @@ void ICACHE_RAM_ATTR SendRCdataToRF()
     else
     {
       #if defined HYBRID_SWITCHES_8
+      //luaxx
       GenerateChannelDataHybridSwitch8(Radio.TXdataBuffer, &crsf, DeviceAddr);
       #elif defined SEQ_SWITCHES
       GenerateChannelDataSeqSwitch(Radio.TXdataBuffer, &crsf, DeviceAddr);
@@ -363,11 +374,13 @@ void ICACHE_RAM_ATTR SendRCdataToRF()
   }
 
   ///// Next, Calculate the CRC and put it into the buffer /////
-  uint8_t crc = ota_crc.calc(Radio.TXdataBuffer, 7) + CRCCaesarCipher;
-  Radio.TXdataBuffer[7] = crc;
-  Radio.TXnb(Radio.TXdataBuffer, 8);
-}
 
+  //luaxx
+  uint8_t crc = ota_crc.calc(Radio.TXdataBuffer, 7) + CRCCaesarCipher;
+  Radio.TXdataBuffer[10] = crc;
+  Radio.TXnb(Radio.TXdataBuffer, 11);
+}
+//luaxx
 void sendLuaParams()
 {
   uint8_t luaParams[] = {0xFF,
@@ -379,7 +392,9 @@ void sendLuaParams()
                          (uint8_t)crsf.BadPktsCountResult,
                          (uint8_t)((crsf.GoodPktsCountResult & 0xFF00) >> 8),
                          (uint8_t)(crsf.GoodPktsCountResult & 0xFF)};
-
+//                       (uint8_t)(crsf.FuncMode)};  
+//luaxx
+//crsf.sendLUAresponse(luaParams, 10);
   crsf.sendLUAresponse(luaParams, 9);
 }
 
@@ -438,7 +453,7 @@ void HandleUpdateParameter()
   {
     return;
   }
-
+//luaxx
   switch (crsf.ParameterUpdateData[0])
   {
   case 0: // special case for sending commit packet
@@ -670,7 +685,7 @@ void loop()
     SetRFLinkRate(config.GetRate());
     ExpressLRS_currAirRate_Modparams->TLMinterval = (expresslrs_tlm_ratio_e)config.GetTlm();
     POWERMGNT.setPower((PowerLevels_e)config.GetPower());
-
+//luaxx
     // Write the values, and restart the timer
     WaitEepromCommit = false;
     // Write the uncommitted eeprom values

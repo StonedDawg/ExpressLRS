@@ -185,6 +185,7 @@ void ICACHE_RAM_ATTR HandleFHSS()
     }
 }
 
+//luaxx
 void ICACHE_RAM_ATTR HandleSendTelemetryResponse()
 {
     if ((connectionState == disconnected) || (ExpressLRS_currAirRate_Modparams->TLMinterval == TLM_RATIO_NO_TLM) || (alreadyTLMresp == true))
@@ -219,10 +220,15 @@ void ICACHE_RAM_ATTR HandleSendTelemetryResponse()
     Radio.TXdataBuffer[4] = crsf.LinkStatistics.uplink_SNR;
     Radio.TXdataBuffer[5] = crsf.LinkStatistics.uplink_Link_quality;
     Radio.TXdataBuffer[6] = (crsf.TLMbattSensor.voltage & 0x00FF);
+  //luaxx  
+    
+    Radio.TXdataBuffer[7] = 0;
+    Radio.TXdataBuffer[8] = 0;
+    Radio.TXdataBuffer[9] = 0;
 
     uint8_t crc = ota_crc.calc(Radio.TXdataBuffer, 7) + CRCCaesarCipher;
-    Radio.TXdataBuffer[7] = crc;
-    Radio.TXnb(Radio.TXdataBuffer, 8);
+    Radio.TXdataBuffer[10] = crc;
+    Radio.TXnb(Radio.TXdataBuffer, 11);
     return;
 }
 
@@ -393,6 +399,10 @@ void ICACHE_RAM_ATTR UnpackChannelData_10bit()
     crsf.PackedRCdataOut.ch1 = UINT10_to_CRSF((Radio.RXdataBuffer[2] << 2) + ((Radio.RXdataBuffer[5] & 0b00110000) >> 4));
     crsf.PackedRCdataOut.ch2 = UINT10_to_CRSF((Radio.RXdataBuffer[3] << 2) + ((Radio.RXdataBuffer[5] & 0b00001100) >> 2));
     crsf.PackedRCdataOut.ch3 = UINT10_to_CRSF((Radio.RXdataBuffer[4] << 2) + ((Radio.RXdataBuffer[5] & 0b00000011) >> 0));
+    crsf.PackedRCdataOut.ch4 = UINT10_to_CRSF((Radio.RXdataBuffer[7] << 2));
+    crsf.PackedRCdataOut.ch5 = UINT10_to_CRSF((Radio.RXdataBuffer[8] << 2));
+    crsf.PackedRCdataOut.ch6 = UINT10_to_CRSF((Radio.RXdataBuffer[9] << 2));
+
 }
 
 void ICACHE_RAM_ATTR UnpackMSPData()
@@ -411,12 +421,13 @@ void ICACHE_RAM_ATTR UnpackMSPData()
 
 void ICACHE_RAM_ATTR ProcessRFPacket()
 {
+    //luaxx
     beginProcessing = micros();
     uint8_t calculatedCRC = ota_crc.calc(Radio.RXdataBuffer, 7) + CRCCaesarCipher;
-    uint8_t inCRC = Radio.RXdataBuffer[7];
+    uint8_t inCRC = Radio.RXdataBuffer[10];
     uint8_t type = Radio.RXdataBuffer[0] & 0b11;
     uint8_t packetAddr = (Radio.RXdataBuffer[0] & 0b11111100) >> 2;
-
+//luaxx
 #ifdef HYBRID_SWITCHES_8
     uint8_t SwitchEncModeExpected = 0b01;
 #else
@@ -466,6 +477,7 @@ void ICACHE_RAM_ATTR ProcessRFPacket()
         #if defined SEQ_SWITCHES
         UnpackChannelDataSeqSwitches(Radio.RXdataBuffer, &crsf);
         #elif defined HYBRID_SWITCHES_8
+        //luaxx
         UnpackChannelDataHybridSwitches8(Radio.RXdataBuffer, &crsf);
         #else
         UnpackChannelData_11bit();
