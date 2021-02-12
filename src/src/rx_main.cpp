@@ -97,6 +97,13 @@ bool alreadyTLMresp = false;
 uint32_t beginProcessing;
 uint32_t doneProcessing;
 
+//////////////////////////////////LUAXXXXXXXXXXXXXX////////////////////
+#ifdef HYBRID_SWITCHES_8
+    uint8_t SwitchEncModeExpected = 0b01;
+#else
+    uint8_t SwitchEncModeExpected = 0b00;
+#endif
+
 //////////////////////////////////////////////////////////////
 
 ///////Variables for Telemetry and Link Quality///////////////
@@ -124,7 +131,7 @@ void ICACHE_RAM_ATTR getRFlinkInfo()
     int32_t rssiDBM = LPF_UplinkRSSI.update(Radio.LastPacketRSSI);
 
     crsf.PackedRCdataOut.ch15 = UINT10_to_CRSF(map(constrain(rssiDBM, ExpressLRS_currAirRate_RFperfParams->RXsensitivity, -50),
-                                               ExpressLRS_currAirRate_RFperfParams->RXsensitivity, -50, 0, 1023));
+    //                                           ExpressLRS_currAirRate_RFperfParams->RXsensitivity, -50, 0, 1023));
     crsf.PackedRCdataOut.ch14 = UINT10_to_CRSF(fmap(uplinkLQ, 0, 100, 0, 1023));
 
     // our rssiDBM is currently in the range -128 to 98, but BF wants a value in the range
@@ -227,8 +234,12 @@ void ICACHE_RAM_ATTR HandleSendTelemetryResponse()
     Radio.TXdataBuffer[9] = 0;
 
     uint8_t crc = ota_crc.calc(Radio.TXdataBuffer, 7) + CRCCaesarCipher;
-    Radio.TXdataBuffer[10] = crc;
-    Radio.TXnb(Radio.TXdataBuffer, 11);
+    Radio.TXdataBuffer[7] = crc;
+    if(SwitchEncModeExpected == 0b10){
+  Radio.TXnb(Radio.TXdataBuffer, 11);  
+  } else if(SwitchEncModeExpected == 0b01){
+  Radio.TXnb(Radio.TXdataBuffer, 8);
+  }
     return;
 }
 
@@ -418,21 +429,18 @@ void ICACHE_RAM_ATTR UnpackMSPData()
     packet.addByte(Radio.RXdataBuffer[6]);
     crsf.sendMSPFrameToFC(&packet);
 }
+//////////////////////////////////LUAXXXXXXXXXXXXXX////////////////////
 
 void ICACHE_RAM_ATTR ProcessRFPacket()
 {
     //luaxx
     beginProcessing = micros();
     uint8_t calculatedCRC = ota_crc.calc(Radio.RXdataBuffer, 7) + CRCCaesarCipher;
-    uint8_t inCRC = Radio.RXdataBuffer[10];
+    uint8_t inCRC = Radio.RXdataBuffer[7];
     uint8_t type = Radio.RXdataBuffer[0] & 0b11;
     uint8_t packetAddr = (Radio.RXdataBuffer[0] & 0b11111100) >> 2;
 //luaxx
-#ifdef HYBRID_SWITCHES_8
-    uint8_t SwitchEncModeExpected = 0b01;
-#else
-    uint8_t SwitchEncModeExpected = 0b00;
-#endif
+
     uint8_t SwitchEncMode;
     uint8_t indexIN;
     uint8_t TLMrateIn;
@@ -478,7 +486,11 @@ void ICACHE_RAM_ATTR ProcessRFPacket()
         UnpackChannelDataSeqSwitches(Radio.RXdataBuffer, &crsf);
         #elif defined HYBRID_SWITCHES_8
         //luaxx
+        if(SwitchEncModeExpected == 0b10){
+        UnpackChannelDataAnalog7(Radio.RXdataBuffer, &crsf);    
+        } else if(SwitchEncModeExpected == 0b01) {
         UnpackChannelDataHybridSwitches8(Radio.RXdataBuffer, &crsf);
+        }
         #else
         UnpackChannelData_11bit();
         #endif
@@ -501,13 +513,19 @@ void ICACHE_RAM_ATTR ProcessRFPacket()
          indexIN = (Radio.RXdataBuffer[3] & 0b11000000) >> 6;
          TLMrateIn = (Radio.RXdataBuffer[3] & 0b00111000) >> 3;
          SwitchEncMode = (Radio.RXdataBuffer[3] & 0b00000110) >> 1;
+//////////////////////////////LUAXXXXXXXXXXXX/////////////////////////////
+    
+         if (ExpressLRS_currAirRate_Modparams->index == indexIN && Radio.RXdataBuffer[4] == UID[3] && Radio.RXdataBuffer[5] == UID[4] && Radio.RXdataBuffer[6] == UID[5])
 
-         if (SwitchEncModeExpected == SwitchEncMode && ExpressLRS_currAirRate_Modparams->index == indexIN && Radio.RXdataBuffer[4] == UID[3] && Radio.RXdataBuffer[5] == UID[4] && Radio.RXdataBuffer[6] == UID[5])
          {
              LastSyncPacket = millis();
 #ifndef DEBUG_SUPPRESS
              Serial.println("sync");
 #endif
+             if (SwitchEncModeExpected != SwitchEncMode){
+                SwitchEncModeExpected = SwitchEncMode; 
+             } 
+//////////////////////////////LUAXXXXXXXXXXXX/////////////////////////////
 
              if (ExpressLRS_currAirRate_Modparams->TLMinterval != (expresslrs_tlm_ratio_e)TLMrateIn)
              { // change link parameters if required
