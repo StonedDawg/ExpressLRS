@@ -119,9 +119,9 @@ void ICACHE_RAM_ATTR UnpackChannelDataAnalog7(volatile uint8_t* Buffer, CRSF *cr
     crsf->PackedRCdataOut.ch2 = (Buffer[3] << 3) + ((Buffer[5] & 0b00001100) >> 1);
     crsf->PackedRCdataOut.ch3 = (Buffer[4] << 3) + ((Buffer[5] & 0b00000011) << 1);
     
-    crsf->PackedRCdataOut.ch5 = (Buffer[7] << 3);
-    crsf->PackedRCdataOut.ch6 = (Buffer[8] << 3);
-    crsf->PackedRCdataOut.ch7 = (Buffer[9] << 3);
+    crsf->PackedRCdataOut.ch5 = (Buffer[8] << 3);
+    crsf->PackedRCdataOut.ch6 = (Buffer[9] << 3);
+    crsf->PackedRCdataOut.ch7 = (Buffer[10] << 3);
     
     // The low latency switch
     crsf->PackedRCdataOut.ch4 = SWITCH2b_to_CRSF((Buffer[6] & 0b01100000) >> 5);
@@ -190,6 +190,7 @@ void ICACHE_RAM_ATTR UnpackChannelDataHybridSwitches8(volatile uint8_t* Buffer, 
         case 4:
             crsf->PackedRCdataOut.ch8 = switchValue;
             break;
+        
         case 5:
             crsf->PackedRCdataOut.ch9 = switchValue;
             break;
@@ -199,6 +200,7 @@ void ICACHE_RAM_ATTR UnpackChannelDataHybridSwitches8(volatile uint8_t* Buffer, 
         case 7:
             crsf->PackedRCdataOut.ch11 = switchValue;
             break;
+            
     }
 }
 

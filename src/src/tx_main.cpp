@@ -365,9 +365,9 @@ void ICACHE_RAM_ATTR SendRCdataToRF()
     {
       #if defined HYBRID_SWITCHES_8
       //luaxx
-      if(SwitchEncMode == 0b11){
+      if(SwitchEncMode == 0b10){
         GenerateChannelDataAnalog7(Radio.TXdataBuffer, &crsf, DeviceAddr);
-      }else {
+      }else if(SwitchEncMode == 0b01){
         GenerateChannelDataHybridSwitch8(Radio.TXdataBuffer, &crsf, DeviceAddr);
       }
       #elif defined SEQ_SWITCHES
@@ -383,9 +383,9 @@ void ICACHE_RAM_ATTR SendRCdataToRF()
   //luaxx
   uint8_t crc = ota_crc.calc(Radio.TXdataBuffer, 7) + CRCCaesarCipher;
   Radio.TXdataBuffer[7] = crc;
-  if(SwitchEncMode == 0b11){
+  if(SwitchEncMode == 0b10){
   Radio.TXnb(Radio.TXdataBuffer, 11);  
-  } else {
+  } else if(SwitchEncMode == 0b01){
   Radio.TXnb(Radio.TXdataBuffer, 8);
   }
 }
@@ -401,9 +401,9 @@ void sendLuaParams()
                          (uint8_t)crsf.BadPktsCountResult,
                          (uint8_t)((crsf.GoodPktsCountResult & 0xFF00) >> 8),
                          (uint8_t)(crsf.GoodPktsCountResult & 0xFF),
-                         (uint8_t)(SwitchEncMode)};  
+                         (uint8_t)(SwitchEncMode& 0xFF)};  
 //luaxx
-  crsf.sendLUAresponse(luaParams, 10);
+crsf.sendLUAresponse(luaParams, 10);
 
 }
 
@@ -499,7 +499,8 @@ void HandleUpdateParameter()
   case 4:
     Serial.print("Request Mode: ");
     Serial.println(SwitchEncMode);
-    config.SetSwitchMode((uint8_t)crsf.ParameterUpdateData[1]);
+    config.SetSwitchMode(crsf.ParameterUpdateData[1]);
+    //config.SetSwitchMode(1);
     break;
 /////luaxxxxx//////
   case 5:
@@ -667,19 +668,23 @@ void setup()
 
   eeprom.Begin(); // Init the eeprom
   config.SetStorageProvider(&eeprom); // Pass pointer to the Config class for access to storage
+  
   config.Load(); // Load the stored values from eeprom
+  //config.SetSwitchMode(2);
 
   // Set the pkt rate, TLM ratio, and power from the stored eeprom values
   SetRFLinkRate(config.GetRate());
   ExpressLRS_nextAirRateIndex = ExpressLRS_currAirRate_Modparams->index;
   ExpressLRS_currAirRate_Modparams->TLMinterval = (expresslrs_tlm_ratio_e)config.GetTlm();
   POWERMGNT.setPower((PowerLevels_e)config.GetPower());
-  SwitchEncMode = config.GetSwitchMode();
+  SwitchEncMode = (uint8_t)config.GetSwitchMode();
   crsf.Begin();
   hwTimer.init();
   hwTimer.resume();
   hwTimer.stop(); //comment to automatically start the RX timer and leave it running
   LQCALC.init(10);
+  
+  //config.SetSwitchMode(2);
 }
 
 void loop()
@@ -700,7 +705,7 @@ void loop()
     SetRFLinkRate(config.GetRate());
     ExpressLRS_currAirRate_Modparams->TLMinterval = (expresslrs_tlm_ratio_e)config.GetTlm();
     POWERMGNT.setPower((PowerLevels_e)config.GetPower());
-    SwitchEncMode=config.GetSwitchMode();
+    SwitchEncMode=(uint8_t)config.GetSwitchMode();
 //luaxx
     // Write the values, and restart the timer
     WaitEepromCommit = false;
