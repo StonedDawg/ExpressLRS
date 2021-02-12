@@ -70,6 +70,7 @@ volatile uint16_t CRSF::ChannelDataIn[16] = {0};
 volatile uint16_t CRSF::ChannelDataInPrev[16] = {0};
 
 volatile inBuffer_U CRSF::inBuffer;
+uint8_t CRSF::Analog7Mode = 0;
 
 // current and sent switch values, used for prioritising sequential switch transmission
 uint8_t CRSF::currentSwitches[N_SWITCHES] = {0};
