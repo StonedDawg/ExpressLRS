@@ -97,7 +97,6 @@ bool alreadyTLMresp = false;
 uint32_t beginProcessing;
 uint32_t doneProcessing;
 
-//////////////////////////////////LUAXXXXXXXXXXXXXX////////////////////
 #if defined(HYBRID_SWITCHES_8)
     uint8_t SwitchEncModeExpected = 0b01;
 #elif defined(ANALOG_7)
@@ -105,8 +104,6 @@ uint32_t doneProcessing;
 #else
     uint8_t SwitchEncModeExpected = 0b00;
 #endif
-
-//////////////////////////////////////////////////////////////
 
 ///////Variables for Telemetry and Link Quality///////////////
 uint32_t ModuleBootTime = 0;
@@ -194,7 +191,6 @@ void ICACHE_RAM_ATTR HandleFHSS()
     }
 }
 
-//luaxx
 void ICACHE_RAM_ATTR HandleSendTelemetryResponse()
 {
     if ((connectionState == disconnected) || (ExpressLRS_currAirRate_Modparams->TLMinterval == TLM_RATIO_NO_TLM) || (alreadyTLMresp == true))
@@ -229,7 +225,6 @@ void ICACHE_RAM_ATTR HandleSendTelemetryResponse()
     Radio.TXdataBuffer[4] = crsf.LinkStatistics.uplink_SNR;
     Radio.TXdataBuffer[5] = crsf.LinkStatistics.uplink_Link_quality;
     Radio.TXdataBuffer[6] = (crsf.TLMbattSensor.voltage & 0x00FF);
-  //luaxx  
     
     Radio.TXdataBuffer[7] = 0;
     Radio.TXdataBuffer[8] = 0;
@@ -429,18 +424,14 @@ void ICACHE_RAM_ATTR UnpackMSPData()
     packet.addByte(Radio.RXdataBuffer[6]);
     crsf.sendMSPFrameToFC(&packet);
 }
-//////////////////////////////////LUAXXXXXXXXXXXXXX////////////////////
 
 void ICACHE_RAM_ATTR ProcessRFPacket()
 {
-    //luaxx
     beginProcessing = micros();
     uint8_t calculatedCRC = ota_crc.calc(Radio.RXdataBuffer, 7) + CRCCaesarCipher;
     uint8_t inCRC = Radio.RXdataBuffer[7];
     uint8_t type = Radio.RXdataBuffer[0] & 0b11;
     uint8_t packetAddr = (Radio.RXdataBuffer[0] & 0b11111100) >> 2;
-//luaxx
-
     uint8_t SwitchEncMode;
     uint8_t indexIN;
     uint8_t TLMrateIn;
@@ -510,7 +501,6 @@ void ICACHE_RAM_ATTR ProcessRFPacket()
          indexIN = (Radio.RXdataBuffer[3] & 0b11000000) >> 6;
          TLMrateIn = (Radio.RXdataBuffer[3] & 0b00111000) >> 3;
          SwitchEncMode = (Radio.RXdataBuffer[3] & 0b00000110) >> 1;
-//////////////////////////////LUAXXXXXXXXXXXX/////////////////////////////
         #ifdef ANALOG_7    
          if (ExpressLRS_currAirRate_Modparams->index == indexIN && Radio.RXdataBuffer[4] == UID[3] && Radio.RXdataBuffer[5] == UID[4] && Radio.RXdataBuffer[6] == UID[5])
 
@@ -528,7 +518,6 @@ void ICACHE_RAM_ATTR ProcessRFPacket()
              Serial.println("sync");
 #endif
              
-//////////////////////////////LUAXXXXXXXXXXXX/////////////////////////////
 
              if (ExpressLRS_currAirRate_Modparams->TLMinterval != (expresslrs_tlm_ratio_e)TLMrateIn)
              { // change link parameters if required

@@ -11,12 +11,15 @@
 #if defined(HYBRID_SWITCHES_8) || defined(UNIT_TEST) || defined(ANALOG_7)
 
 /**
- * Hybrid switches packet encoding for sending over the air
+ * Analog7
  *
- * Analog channels are reduced to 10 bits to allow for switch encoding
+ * Analog channels 0-3 are reduced to 10 bits to allow for switch encoding
  * Switch[0] is sent on every packet.
+ * Analog channels 5-7 are reduced to 8 bits and not crc checked, as its main intention
+ * is for headtracker, nothing crucial.
  * A 3 bit switch index and 2 bit value is used to send the remaining switches
  * in a round-robin fashion.
+ * 
  * If any of the round-robin switches have changed
  * we take the lowest indexed one and send that, hence lower indexed switches have
  * higher priority in the event that several are changed at once.
@@ -25,7 +28,6 @@
  * Outputs: Radio.TXdataBuffer, side-effects the sentSwitch value
  */
 
-//luaxx
 void ICACHE_RAM_ATTR GenerateChannelDataAnalog7(volatile uint8_t* Buffer, CRSF *crsf, uint8_t addr)
 {
   uint8_t PacketHeaderAddr;
@@ -50,7 +52,7 @@ void ICACHE_RAM_ATTR GenerateChannelDataAnalog7(volatile uint8_t* Buffer, CRSF *
   // put the bits into buf[6]. nextSwitchIndex is in the range 1 through 7 so takes 3 bits
   // currentSwitches[nextSwitchIndex] is in the range 0 through 2, takes 2 bits.
   Buffer[6] += (nextSwitchIndex << 2) + value;
-  
+  //3 extra analog is only 8bit and not crc checked
   Buffer[8] = ((crsf->ChannelDataIn[5]) >> 3);
   Buffer[9] = ((crsf->ChannelDataIn[6]) >> 3);
   Buffer[10] = ((crsf->ChannelDataIn[7]) >> 3);
@@ -70,7 +72,6 @@ void ICACHE_RAM_ATTR GenerateChannelDataAnalog7(volatile uint8_t* Buffer, CRSF *
  * Output: crsf->PackedRCdataOut
  */
 
-//luaxx
 void ICACHE_RAM_ATTR GenerateChannelDataHybridSwitch8(volatile uint8_t* Buffer, CRSF *crsf, uint8_t addr)
 {
   uint8_t PacketHeaderAddr;

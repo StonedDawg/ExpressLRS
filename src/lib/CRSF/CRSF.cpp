@@ -60,8 +60,6 @@ uint32_t CRSF::GoodPktsCount = 0;
 uint32_t CRSF::BadPktsCount = 0;
 uint32_t CRSF::GoodPktsCountResult = 0;
 uint32_t CRSF::BadPktsCountResult = 0;
-//luaxx
-//uint32_t CRSF::FuncMode = 1;
 
 volatile uint8_t CRSF::SerialInPacketLen = 0; // length of the CRSF packet as measured
 volatile uint8_t CRSF::SerialInPacketPtr = 0; // index where we are reading/writing
@@ -205,7 +203,6 @@ void ICACHE_RAM_ATTR CRSF::sendLinkStatisticsToTX()
 #endif
     }
 }
-//luaxx
 void CRSF::sendLUAresponse(uint8_t val[], uint8_t len)
 {
     uint8_t LUArespLength = len + 2;
@@ -923,13 +920,7 @@ void ICACHE_RAM_ATTR CRSF::sendSyncPacketToTX(void *pvParameters) // in values i
                         currentSwitches[i] = ChannelDataIn[i + 4] / SWITCH_DIVISOR;    
                       }
                   }
-                //} else {
-                //for (int i = 0; i < N_SWITCHES; i++)
-                //{
-                //    currentSwitches[i] = ChannelDataIn[i + 4] / SWITCH_DIVISOR;
-                //}
-                //luaxx
-                //}
+                
             }
 
             void ICACHE_RAM_ATTR CRSF::GetChannelDataIn() // data is packed as 11 bits per channel

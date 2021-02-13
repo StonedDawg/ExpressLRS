@@ -31,7 +31,6 @@ public:
     void SetRate(uint32_t rate);
     void SetTlm(uint32_t tlm);
     void SetPower(uint32_t power);
-    //luaxx
     void SetSwitchMode(uint32_t modeSwitch);
     void SetDefaults();
     void SetStorageProvider(ELRS_EEPROM *eeprom);

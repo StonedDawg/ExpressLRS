@@ -81,7 +81,6 @@ LPF LPD_DownlinkLQ(1);
 volatile bool UpdateParamReq = false;
 #define OPENTX_LUA_UPDATE_INTERVAL 1000
 uint32_t LuaLastUpdated = 0;
-//luaxx
 uint8_t luaCommitPacket[7] = {(uint8_t)0xFE, thisCommit[0], thisCommit[1], thisCommit[2], thisCommit[3], thisCommit[4], thisCommit[5]};
 
 uint32_t PacketLastSentMicros = 0;
@@ -99,10 +98,8 @@ void OnTLMRatePacket(mspPacket_t *packet);
 
 uint8_t baseMac[6];
 
-//luaxx
 void ICACHE_RAM_ATTR ProcessTLMpacket()
 {
-  //luaxx
   uint8_t calculatedCRC = ota_crc.calc(Radio.RXdataBuffer, 7) + CRCCaesarCipher;
   uint8_t inCRC = Radio.RXdataBuffer[7];
   uint8_t type = Radio.RXdataBuffer[0] & TLM_PACKET;
@@ -176,7 +173,6 @@ void ICACHE_RAM_ATTR CheckChannels5to8Change()
   }
 }
 
-  //luaxx
 #if defined(HYBRID_SWITCHES_8) || defined(ANALOG_7)
   uint8_t SwitchEncMode = 0b01;
 #else
@@ -306,7 +302,6 @@ void ICACHE_RAM_ATTR HandleTLM()
   }
 }
 
-//luaxx
 void ICACHE_RAM_ATTR SendRCdataToRF()
 {
 #ifdef FEATURE_OPENTX_SYNC
@@ -361,7 +356,6 @@ void ICACHE_RAM_ATTR SendRCdataToRF()
     else
     {
       #if defined(HYBRID_SWITCHES_8) || defined(ANALOG_7)
-      //luaxx
       if(SwitchEncMode == 0b10){
         GenerateChannelDataAnalog7(Radio.TXdataBuffer, &crsf, DeviceAddr);
       }else if(SwitchEncMode == 0b01){
@@ -377,7 +371,6 @@ void ICACHE_RAM_ATTR SendRCdataToRF()
 
   ///// Next, Calculate the CRC and put it into the buffer /////
 
-  //luaxx
   uint8_t crc = ota_crc.calc(Radio.TXdataBuffer, 7) + CRCCaesarCipher;
   Radio.TXdataBuffer[7] = crc;
   if(SwitchEncMode == 0b10){
@@ -386,7 +379,6 @@ void ICACHE_RAM_ATTR SendRCdataToRF()
   Radio.TXnb(Radio.TXdataBuffer, 8);
   }
 }
-//luaxx
 void sendLuaParams()
 {
   uint8_t luaParams[] = {0xFF,
@@ -399,7 +391,6 @@ void sendLuaParams()
                          (uint8_t)((crsf.GoodPktsCountResult & 0xFF00) >> 8),
                          (uint8_t)(crsf.GoodPktsCountResult & 0xFF),
                          (uint8_t)(SwitchEncMode& 0xFF)};  
-//luaxx
 crsf.sendLUAresponse(luaParams, 10);
 
 }
@@ -434,7 +425,6 @@ void UARTconnected()
   //inital state variables, maybe move elsewhere?
   for (int i = 0; i < 2; i++) // sometimes OpenTX ignores our packets (not sure why yet...)
   {
-    //luaxx
     crsf.sendLUAresponse(luaCommitPacket, 7);
     delay(100);
     sendLuaParams();
@@ -460,7 +450,6 @@ void HandleUpdateParameter()
   {
     return;
   }
-//luaxx
   switch (crsf.ParameterUpdateData[0])
   {
   case 0: // special case for sending commit packet
@@ -492,14 +481,14 @@ void HandleUpdateParameter()
     Serial.println(crsf.ParameterUpdateData[1]);
     config.SetPower((PowerLevels_e)crsf.ParameterUpdateData[1]);
     break;
-//////luaxxxxx////////
+
   case 4:
     Serial.print("Request Mode: ");
     Serial.println(SwitchEncMode);
     config.SetSwitchMode(crsf.ParameterUpdateData[1]);
     //config.SetSwitchMode(1);
     break;
-/////luaxxxxx//////
+
   case 5:
     break;
   case 0xFE:
@@ -705,7 +694,7 @@ void loop()
     POWERMGNT.setPower((PowerLevels_e)config.GetPower());
     SwitchEncMode=(uint8_t)config.GetSwitchMode();
     crsf.Analog7Mode = SwitchEncMode;
-//luaxx
+
     // Write the values, and restart the timer
     WaitEepromCommit = false;
     // Write the uncommitted eeprom values
