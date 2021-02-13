@@ -212,10 +212,7 @@ void ICACHE_RAM_ATTR Generate4ChannelData_10bit()
                           ((CRSF_to_UINT10(crsf.ChannelDataIn[1]) & 0b0000000011) << 4) +
                           ((CRSF_to_UINT10(crsf.ChannelDataIn[2]) & 0b0000000011) << 2) +
                           ((CRSF_to_UINT10(crsf.ChannelDataIn[3]) & 0b0000000011) << 0);
-  Radio.TXdataBuffer[7] = ((CRSF_to_UINT10(crsf.ChannelDataIn[4]) & 0b1111111100) >> 2);
-  Radio.TXdataBuffer[8] = ((CRSF_to_UINT10(crsf.ChannelDataIn[5]) & 0b1111111100) >> 2);
-  Radio.TXdataBuffer[9] = ((CRSF_to_UINT10(crsf.ChannelDataIn[6]) & 0b1111111100) >> 2);
-}
+  }
 
 void ICACHE_RAM_ATTR Generate4ChannelData_11bit()
 {
