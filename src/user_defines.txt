@@ -24,7 +24,8 @@
 
 
 ### SWITCHES: ### 
-
+#for RX flashing, select only one. TX can select both or just one will
+#enable mode selection in opentx LUA script.
 #-DHYBRID_SWITCHES_8
 #-DANALOG_7
 
