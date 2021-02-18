@@ -237,8 +237,6 @@ RxConfig::SetDefaults()
 }
 
 void
-<<<<<<< HEAD
-=======
 TxConfig::SetStorageProvider(ELRS_EEPROM *eeprom)
 {
     if (eeprom)
@@ -352,7 +350,6 @@ RxConfig::SetDefaults()
 }
 
 void
->>>>>>> f36d79ed7607649ec77a8c76915b56230f25075c
 RxConfig::SetStorageProvider(ELRS_EEPROM *eeprom)
 {
     if (eeprom)

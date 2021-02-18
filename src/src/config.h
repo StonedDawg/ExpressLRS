@@ -74,8 +74,6 @@ public:
     void SetStorageProvider(ELRS_EEPROM *eeprom);
 
 private:
-<<<<<<< HEAD
-=======
     tx_config_t m_config;
     ELRS_EEPROM *m_eeprom;
     bool        m_modified;
@@ -110,7 +108,6 @@ public:
     void SetStorageProvider(ELRS_EEPROM *eeprom);
 
 private:
->>>>>>> f36d79ed7607649ec77a8c76915b56230f25075c
     rx_config_t m_config;
     ELRS_EEPROM *m_eeprom;
     bool        m_modified;
