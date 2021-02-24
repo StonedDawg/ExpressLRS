@@ -678,7 +678,7 @@ void setup()
 #endif
 
 #ifdef PLATFORM_STM32
-#if defined(TARGET_R9SLIMPLUS_RX)
+#if defined(TARGET_R9SLIMPLUS_RX) || defined (TARGET_R9SLIM_RX)
     CRSF_RX_SERIAL.setRx(GPIO_PIN_RCSIGNAL_RX);
     CRSF_RX_SERIAL.begin(CRSF_RX_BAUDRATE);
 
