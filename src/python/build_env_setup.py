@@ -23,3 +23,5 @@ if stm and "$UPLOADER $UPLOADERFLAGS" in env.get('UPLOADCMD', '$UPLOADER $UPLOAD
         env.Replace(UPLOADCMD=stlink.on_upload)
     elif "_BETAFLIGHTPASSTHROUGH" in target_name:
         env.Replace(UPLOADCMD=UARTupload.on_upload)
+    elif "_ARDU" in target_name:
+        env.Replace(UPLOADCMD=UARTupload.on_upload)
