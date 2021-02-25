@@ -293,7 +293,7 @@ void ICACHE_RAM_ATTR HandleTLM()
 {
   if (ExpressLRS_currAirRate_Modparams->TLMinterval > 0)
   {
-    if(crsf.LinkStatistics.uplink_RSSI_1 > -95){
+    if(crsf.LinkStatistics.uplink_RSSI_1 > 160){ //if bigger than 160(int -95)
       uint8_t modresult = (NonceTX) % TLMratioEnumToValue(ExpressLRS_currAirRate_Modparams->TLMinterval);
       if (modresult != 0) // wait for tlm response because it's time
       {
@@ -303,6 +303,7 @@ void ICACHE_RAM_ATTR HandleTLM()
       WaitRXresponse = true;
     }
     else {
+      crsf.LinkStatistics.uplink_RSSI_1 = 165;
       return;
     }
   }
@@ -316,7 +317,7 @@ void ICACHE_RAM_ATTR SendRCdataToRF()
 #endif
 
   /////// This Part Handles the Telemetry Response ///////
-  if ((uint8_t)ExpressLRS_currAirRate_Modparams->TLMinterval > 0)
+  if ((uint8_t)ExpressLRS_currAirRate_Modparams->TLMinterval > 0 || crsf.LinkStatistics.uplink_RSSI_1 > 160)
   {
       uint8_t modresult = (NonceTX) % TLMratioEnumToValue(ExpressLRS_currAirRate_Modparams->TLMinterval);
       if (modresult == 0)
