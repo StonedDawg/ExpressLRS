@@ -313,19 +313,26 @@ void ICACHE_RAM_ATTR SendRCdataToRF()
   /////// This Part Handles the Telemetry Response ///////
   if ((uint8_t)ExpressLRS_currAirRate_Modparams->TLMinterval > 0)
   {
-    uint8_t modresult = (NonceTX) % TLMratioEnumToValue(ExpressLRS_currAirRate_Modparams->TLMinterval);
-    if (modresult == 0)
-    { // wait for tlm response
-      if (WaitRXresponse == true)
-      {
-        WaitRXresponse = false;
-        LQCALC.inc();
-        return;
+    if(crsf.LinkStatistics.uplink_RSSI_1 > -95){
+      uint8_t modresult = (NonceTX) % TLMratioEnumToValue(ExpressLRS_currAirRate_Modparams->TLMinterval);
+      if (modresult == 0)
+      { // wait for tlm response
+        if (WaitRXresponse == true)
+        {
+          WaitRXresponse = false;
+          LQCALC.inc();
+          return;
+        }
+        else
+        {
+          NonceTX++;
+        }
       }
-      else
-      {
-        NonceTX++;
-      }
+    } else {
+      
+          WaitRXresponse = false;
+          LQCALC.inc();
+          return;
     }
   }
 

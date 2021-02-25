@@ -237,7 +237,8 @@ void ICACHE_RAM_ATTR HandleFHSS()
 //luaxx
 void ICACHE_RAM_ATTR HandleSendTelemetryResponse()
 {
-    if ((connectionState == disconnected) || (ExpressLRS_currAirRate_Modparams->TLMinterval == TLM_RATIO_NO_TLM) || (alreadyTLMresp == true))
+    int32_t telemetryRssi = (antenna == 0) ? LPF_UplinkRSSI0.SmoothDataINT : LPF_UplinkRSSI1.SmoothDataINT;
+    if ((connectionState == disconnected) || (ExpressLRS_currAirRate_Modparams->TLMinterval == TLM_RATIO_NO_TLM) || (alreadyTLMresp == true) || (telemetryRssi < -95))
     {
         return; // don't bother sending tlm if disconnected or TLM is off
     }
