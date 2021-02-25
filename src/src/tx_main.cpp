@@ -303,7 +303,7 @@ void ICACHE_RAM_ATTR HandleTLM()
       WaitRXresponse = true;
     }
     else {
-      crsf.LinkStatistics.uplink_RSSI_1 = 165;
+      crsf.LinkStatistics.uplink_RSSI_1 = 165; // reset to -90 to do second try next cycle
       return;
     }
   }
@@ -317,10 +317,10 @@ void ICACHE_RAM_ATTR SendRCdataToRF()
 #endif
 
   /////// This Part Handles the Telemetry Response ///////
-  if ((uint8_t)ExpressLRS_currAirRate_Modparams->TLMinterval > 0 || crsf.LinkStatistics.uplink_RSSI_1 > 160)
+  if ((uint8_t)ExpressLRS_currAirRate_Modparams->TLMinterval > 0)
   {
       uint8_t modresult = (NonceTX) % TLMratioEnumToValue(ExpressLRS_currAirRate_Modparams->TLMinterval);
-      if (modresult == 0)
+      if (modresult == 0 && crsf.LinkStatistics.uplink_RSSI_1 > 160) // if rssi was strong, lets wait for responds.
       { // wait for tlm response
         if (WaitRXresponse == true)
         {
@@ -328,7 +328,7 @@ void ICACHE_RAM_ATTR SendRCdataToRF()
           LQCALC.inc();
           return;
         }
-        else
+        else //if have result or telemetry is lower than -95 skip for next cycle
         {
           NonceTX++;
         }
