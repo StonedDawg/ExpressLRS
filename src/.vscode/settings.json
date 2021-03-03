@@ -23,5 +23,6 @@
         "*.tcc": "cpp",
         "ios": "cpp",
         "random": "cpp"
-    }
+    },
+    "cmake.configureOnOpen": false
 }
