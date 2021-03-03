@@ -185,8 +185,14 @@ void ICACHE_RAM_ATTR CheckChannels5to8Change()
     }
   }
 }
-
+#if defined(HYBRID_SWITCHES_8)
   uint8_t SwitchEncMode = 0b01;
+  #elif defined(ANALOG_7)
+  uint8_t SwitchEncMode = 0b10;
+#else
+uint8_t SwitchEncMode = 0b11;
+  
+#endif
 
 void ICACHE_RAM_ATTR GenerateSyncPacketData()
 {
