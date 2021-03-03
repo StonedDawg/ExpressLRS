@@ -19,7 +19,7 @@ void GenerateChannelDataAnalog7(volatile uint8_t* Buffer, CRSF *crsf, uint8_t ad
 void UnpackChannelDataAnalog7(volatile uint8_t* Buffer, CRSF *crsf);
 #endif
 void GenerateChannelDataHybridSwitch8(volatile uint8_t* Buffer, CRSF *crsf, uint8_t addr);
-#if defined(HYBRID_SWITCHES_8) || defined(UNIT_TEST) || defined(ANALOG_7)
+#if defined(HYBRID_SWITCHES_8) || defined(UNIT_TEST)
 void UnpackChannelDataHybridSwitches8(volatile uint8_t* Buffer, CRSF *crsf);
 #endif // HYBRID_SWITCHES_8
 void ICACHE_RAM_ATTR GenerateChannelDataSeqSwitch(volatile uint8_t* Buffer, CRSF *crsf, uint8_t addr);

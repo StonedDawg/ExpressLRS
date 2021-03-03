@@ -24,7 +24,6 @@
  * Outputs: Radio.TXdataBuffer, side-effects the sentSwitch value
  */
 
-//luaxx
 void ICACHE_RAM_ATTR GenerateChannelDataAnalog7(volatile uint8_t* Buffer, CRSF *crsf, uint8_t addr)
 {
   uint8_t PacketHeaderAddr;
@@ -69,7 +68,6 @@ void ICACHE_RAM_ATTR GenerateChannelDataAnalog7(volatile uint8_t* Buffer, CRSF *
  * Output: crsf->PackedRCdataOut
  */
 
-//luaxx
 void ICACHE_RAM_ATTR GenerateChannelDataHybridSwitch8(volatile uint8_t* Buffer, CRSF *crsf, uint8_t addr)
 {
   uint8_t PacketHeaderAddr;
