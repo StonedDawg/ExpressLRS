@@ -602,7 +602,8 @@ void ICACHE_RAM_ATTR ProcessRFPacket()
         
 #ifndef DEBUG_SUPPRESS
              Serial.println("sync");
-#endif
+#endif 
+
              if (ExpressLRS_currAirRate_Modparams->TLMinterval != (expresslrs_tlm_ratio_e)TLMrateIn)
              { // change link parameters if required
 #ifndef DEBUG_SUPPRESS
