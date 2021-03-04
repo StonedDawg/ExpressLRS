@@ -106,7 +106,15 @@ bool alreadyTLMresp = false;
 uint32_t beginProcessing;
 uint32_t doneProcessing;
 
-//////////////////////////////////////////////////////////////
+#if defined(HYBRID_SWITCHES_8)
+    uint8_t SwitchEncModeExpected = 0b01;
+#elif defined(ANALOG_7) && (defined(Regulatory_Domain_AU_915) || defined(Regulatory_Domain_EU_868) || defined(Regulatory_Domain_FCC_915))
+    uint8_t SwitchEncModeExpected = 0b10;
+#elif defined(SEQ_SWITCHES)
+    uint8_t SwitchEncModeExpected = 0b11;
+#else //11bit
+    uint8_t SwitchEncModeExpected = 0b00;
+#endif
 
 ///////Variables for Telemetry and Link Quality///////////////
 uint32_t ModuleBootTime = 0;
@@ -246,10 +254,18 @@ void ICACHE_RAM_ATTR HandleSendTelemetryResponse()
     Radio.TXdataBuffer[4] = crsf.LinkStatistics.uplink_SNR;
     Radio.TXdataBuffer[5] = crsf.LinkStatistics.uplink_Link_quality;
     Radio.TXdataBuffer[6] = (crsf.TLMbattSensor.voltage & 0x00FF);
+    
+    Radio.TXdataBuffer[7] = 0;
+    Radio.TXdataBuffer[8] = 0;
+    Radio.TXdataBuffer[9] = 0;
 
     uint8_t crc = ota_crc.calc(Radio.TXdataBuffer, 7) + CRCCaesarCipher;
     Radio.TXdataBuffer[7] = crc;
-    Radio.TXnb(Radio.TXdataBuffer, 8);
+    #ifdef ANALOG_7
+        Radio.TXnb(Radio.TXdataBuffer, 11);
+    #else
+        Radio.TXnb(Radio.TXdataBuffer, 8);
+    #endif
     return;
 }
 
@@ -424,6 +440,8 @@ void ICACHE_RAM_ATTR UnpackChannelData_10bit()
     crsf.PackedRCdataOut.ch1 = UINT10_to_CRSF((Radio.RXdataBuffer[2] << 2) + ((Radio.RXdataBuffer[5] & 0b00110000) >> 4));
     crsf.PackedRCdataOut.ch2 = UINT10_to_CRSF((Radio.RXdataBuffer[3] << 2) + ((Radio.RXdataBuffer[5] & 0b00001100) >> 2));
     crsf.PackedRCdataOut.ch3 = UINT10_to_CRSF((Radio.RXdataBuffer[4] << 2) + ((Radio.RXdataBuffer[5] & 0b00000011) >> 0));
+
+
 }
 
 void ICACHE_RAM_ATTR UnpackMSPData()
@@ -455,12 +473,6 @@ void ICACHE_RAM_ATTR ProcessRFPacket()
     uint8_t inCRC = Radio.RXdataBuffer[7];
     uint8_t type = Radio.RXdataBuffer[0] & 0b11;
     uint8_t packetAddr = (Radio.RXdataBuffer[0] & 0b11111100) >> 2;
-
-#ifdef HYBRID_SWITCHES_8
-    uint8_t SwitchEncModeExpected = 0b01;
-#else
-    uint8_t SwitchEncModeExpected = 0b00;
-#endif
     uint8_t SwitchEncMode;
     uint8_t indexIN;
     uint8_t TLMrateIn;
@@ -502,9 +514,11 @@ void ICACHE_RAM_ATTR ProcessRFPacket()
     switch (type)
     {
     case RC_DATA_PACKET: //Standard RC Data Packet
-        #if defined SEQ_SWITCHES
+        #if defined(SEQ_SWITCHES)
         UnpackChannelDataSeqSwitches(Radio.RXdataBuffer, &crsf);
-        #elif defined HYBRID_SWITCHES_8
+        #elif defined(ANALOG_7)
+        UnpackChannelDataAnalog7(Radio.RXdataBuffer, &crsf);    
+        #elif defined(HYBRID_SWITCHES_8)        
         UnpackChannelDataHybridSwitches8(Radio.RXdataBuffer, &crsf);
         #else
         UnpackChannelData_11bit();
@@ -528,13 +542,16 @@ void ICACHE_RAM_ATTR ProcessRFPacket()
          indexIN = (Radio.RXdataBuffer[3] & 0b11000000) >> 6;
          TLMrateIn = (Radio.RXdataBuffer[3] & 0b00111000) >> 3;
          SwitchEncMode = (Radio.RXdataBuffer[3] & 0b00000110) >> 1;
-
-         if (SwitchEncModeExpected == SwitchEncMode && ExpressLRS_currAirRate_Modparams->index == indexIN && Radio.RXdataBuffer[4] == UID[3] && Radio.RXdataBuffer[5] == UID[4] && Radio.RXdataBuffer[6] == UID[5])
+           
+         
+             if (SwitchEncModeExpected == SwitchEncMode && ExpressLRS_currAirRate_Modparams->index == indexIN && Radio.RXdataBuffer[4] == UID[3] && Radio.RXdataBuffer[5] == UID[4] && Radio.RXdataBuffer[6] == UID[5])
          {
              LastSyncPacket = millis();
+         
 #ifndef DEBUG_SUPPRESS
              Serial.println("sync");
 #endif
+             
 
              if (ExpressLRS_currAirRate_Modparams->TLMinterval != (expresslrs_tlm_ratio_e)TLMrateIn)
              { // change link parameters if required

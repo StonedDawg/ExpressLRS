@@ -26,8 +26,11 @@
 
 ### SWITCHES: ###
 
-#-DHYBRID_SWITCHES_8
+# for RX flashing, select only one mode. TX can select from LUA script.
+# switch mode default value will be the one selected.
 
+#-DHYBRID_SWITCHES_8
+#-DANALOG_7
 
 ### PERFORMANCE OPTIONS: ###
 

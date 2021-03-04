@@ -13,6 +13,9 @@ typedef struct {
     uint32_t    rate;
     uint32_t    tlm;
     uint32_t    power;
+
+    uint32_t    switchMode;
+
 } tx_config_t;
 
 class TxConfig
@@ -25,12 +28,14 @@ public:
     uint32_t GetRate();
     uint32_t GetTlm();
     uint32_t GetPower();
+    uint32_t GetSwitchMode();
     bool     IsModified();
 
     // Setters
     void SetRate(uint32_t rate);
     void SetTlm(uint32_t tlm);
     void SetPower(uint32_t power);
+    void SetSwitchMode(uint32_t modeSwitch);
     void SetDefaults();
     void SetStorageProvider(ELRS_EEPROM *eeprom);
 
@@ -40,7 +45,6 @@ private:
     bool        m_modified;
 };
 
-///////////////////////////////////////////////////
 
 typedef struct {
     uint32_t    version;
