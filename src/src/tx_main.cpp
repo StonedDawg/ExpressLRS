@@ -289,15 +289,22 @@ void ICACHE_RAM_ATTR HandleTLM()
 {
   if (ExpressLRS_currAirRate_Modparams->TLMinterval > 0)
   {
-    uint8_t modresult = (NonceTX) % TLMratioEnumToValue(ExpressLRS_currAirRate_Modparams->TLMinterval);
-    if (modresult != 0) // wait for tlm response because it's time
-    {
+    if(crsf.LinkStatistics.uplink_RSSI_1 > 160){ //if bigger than 160(int -95)
+      uint8_t modresult = (NonceTX) % TLMratioEnumToValue(ExpressLRS_currAirRate_Modparams->TLMinterval);
+      if (modresult != 0) // wait for tlm response because it's time
+      {
+        return;
+      }
+      Radio.RXnb();
+      WaitRXresponse = true;
+    }
+    else {
+      crsf.LinkStatistics.uplink_RSSI_1 = 165; // reset to -90 to do second try next cycle
       return;
     }
-    Radio.RXnb();
-    WaitRXresponse = true;
   }
 }
+
 
 void ICACHE_RAM_ATTR SendRCdataToRF()
 {
@@ -308,22 +315,21 @@ void ICACHE_RAM_ATTR SendRCdataToRF()
   /////// This Part Handles the Telemetry Response ///////
   if ((uint8_t)ExpressLRS_currAirRate_Modparams->TLMinterval > 0)
   {
-    uint8_t modresult = (NonceTX) % TLMratioEnumToValue(ExpressLRS_currAirRate_Modparams->TLMinterval);
-    if (modresult == 0)
-    { // wait for tlm response
-      if (WaitRXresponse == true)
-      {
-        WaitRXresponse = false;
-        LQCALC.inc();
-        return;
-      }
-      else
-      {
-        NonceTX++;
-      }
-    }
+      uint8_t modresult = (NonceTX) % TLMratioEnumToValue(ExpressLRS_currAirRate_Modparams->TLMinterval);
+      if (modresult == 0 && crsf.LinkStatistics.uplink_RSSI_1 > 160) // if rssi was strong, lets wait for responds.
+      { // wait for tlm response
+        if (WaitRXresponse == true)
+        {
+          WaitRXresponse = false;
+          LQCALC.inc();
+          return;
+        }
+        else //if have result or telemetry is lower than -95 skip for next cycle
+        {
+          NonceTX++;
+        }
+      }    
   }
-
   uint32_t SyncInterval;
 
 #if defined(NO_SYNC_ON_ARM) && defined(ARM_CHANNEL)
