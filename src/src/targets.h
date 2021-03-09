@@ -113,6 +113,9 @@ https://github.com/jaxxzer
 #ifdef USE_R9MM_R9MINI_SBUS
     #define GPIO_PIN_RCSIGNAL_RX    PA3
     #define GPIO_PIN_RCSIGNAL_TX    PA2
+#elif TARGET_R9SLIM_RX               // R9SLIMPLUS USES DUAL UART CONFIGURATION FOR TX1/RX1
+    #define GPIO_PIN_RCSIGNAL_RX    PA3 // RX1 PIN OF CONNECTOR 1 ON SLIMPLUS
+    #define GPIO_PIN_RCSIGNAL_TX    PA2  // TX1 PIN OF CONNECTOR 1 ON SLIMPLUS
 #elif TARGET_R9SLIMPLUS_RX               // R9SLIMPLUS USES DUAL UART CONFIGURATION FOR TX1/RX1
     #define GPIO_PIN_RCSIGNAL_RX    PB11 // RX1 PIN OF CONNECTOR 1 ON SLIMPLUS
     #define GPIO_PIN_RCSIGNAL_TX    PA9  // TX1 PIN OF CONNECTOR 1 ON SLIMPLUS
@@ -144,6 +147,11 @@ https://github.com/jaxxzer
     #define GPIO_PIN_LED_RED        PA11 // Red
     #define GPIO_PIN_LED_GREEN      PA12 // Green
     #define GPIO_PIN_BUTTON         PC13  // pullup e.g. LOW when pressed
+#elif TARGET_R9SLIM_RX
+    //#define GPIO_PIN_LED            PA11 // Red
+    #define GPIO_PIN_LED_RED        PA11 // Red
+    #define GPIO_PIN_LED_GREEN      PA12 // Green
+    //#define GPIO_PIN_BUTTON         PC13  // pullup e.g. LOW when pressed
 #else //R9MM_R9MINI
     //#define GPIO_PIN_LED            PC1 // Red
     #define GPIO_PIN_LED_RED        PC1 // Red
