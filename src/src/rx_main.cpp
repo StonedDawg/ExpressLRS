@@ -164,7 +164,7 @@ void SetRFLinkRate(uint8_t index) // Set speed of RF link (hz)
     {
         return;
     }
-    
+
     if (!LockRFmode)
     {
         expresslrs_mod_settings_s *const ModParams = get_elrs_airRateConfig(index);
@@ -198,7 +198,7 @@ void ICACHE_RAM_ATTR HandleFHSS()
     }
 
     alreadyFHSS = true;
-    Radio.SetFrequency(FHSSgetNextFreq());
+    Radio.SetFrequencyReg(FHSSgetNextFreq());
 
     if (ExpressLRS_currAirRate_Modparams->TLMinterval == TLM_RATIO_NO_TLM)
     {
@@ -324,7 +324,7 @@ void LostConnection()
 
     if (!InBindingMode)
     {
-        Radio.SetFrequency(GetInitialFreq()); // in conn lost state we always want to listen on freq index 0
+        Radio.SetFrequencyReg(GetInitialFreq()); // in conn lost state we always want to listen on freq index 0
         hwTimer.stop();
     }
 
@@ -437,7 +437,7 @@ void ICACHE_RAM_ATTR UnpackMSPData()
     packet.addByte(Radio.RXdataBuffer[4]);
     packet.addByte(Radio.RXdataBuffer[5]);
     packet.addByte(Radio.RXdataBuffer[6]);
-    
+
     if (packet.function == MSP_ELRS_BIND)
     {
         OnELRSBindMSP(&packet);
@@ -604,8 +604,7 @@ void ICACHE_RAM_ATTR ProcessRFPacket()
 
 void beginWebsever()
 {
-#ifdef PLATFORM_STM32
-#else
+#if defined(PLATFORM_ESP32) || defined(PLATFORM_ESP8266)
     hwTimer.stop();
     BeginWebUpdate();
     webUpdateMode = true;
@@ -622,12 +621,12 @@ void sampleButton()
         buttonDown = true;
     }
 
-    if (buttonValue == true && buttonPrevValue == false) 
+    if (buttonValue == true && buttonPrevValue == false)
     { //rising edge
         buttonDown = false;
     }
 
-    if ((millis() > buttonLastPressed + WEB_UPDATE_PRESS_INTERVAL) && buttonDown) 
+    if ((millis() > buttonLastPressed + WEB_UPDATE_PRESS_INTERVAL) && buttonDown)
     { // button held down for WEB_UPDATE_PRESS_INTERVAL
         if (!webUpdateMode)
         {
@@ -684,9 +683,6 @@ void setup()
 
     Serial.setTx(GPIO_PIN_RCSIGNAL_TX);
 #else /* !TARGET_R9SLIMPLUS_RX */
-#ifdef USE_R9MM_R9MINI_SBUS
-//HardwareSerial(USART2); // This is useless call
-#endif
     Serial.setTx(GPIO_PIN_RCSIGNAL_TX);
     Serial.setRx(GPIO_PIN_RCSIGNAL_RX);
 #endif /* TARGET_R9SLIMPLUS_RX */
@@ -800,7 +796,7 @@ void setup()
         delay(200);
         Serial.println("Failed to detect RF chipset!!!");
     }
-#ifdef Regulatory_Domain_ISM_2400
+#ifdef TARGET_SX1280
     Radio.SetOutputPower(13); //default is max power (12.5dBm for SX1280 RX)
 #else
     Radio.SetOutputPower(0b1111); //default is max power (17dBm for SX127x RX@)
@@ -817,26 +813,7 @@ void setup()
     hwTimer.callbackTock = &HWtimerCallbackTock;
     hwTimer.callbackTick = &HWtimerCallbackTick;
 
-    // #ifdef LOCK_ON_50HZ // to do check if needed or delete
-    //     for (int i = 0; i < RATE_MAX; i++)
-    //     {
-    //         expresslrs_mod_settings_s *const ModParams = get_elrs_airRateConfig((expresslrs_RFrates_e)i);
-    //         if (ModParams->enum_rate == RATE_50HZ)
-    //         {
-    //             SetRFLinkRate(ModParams->index);
-    //             LockRFmode = true;
-    //         }
-    //     }
-    // #else
-    //     SetRFLinkRate(RATE_DEFAULT);
-    // #endif
-
-#ifdef LOCK_ON_50HZ
-    SetRFLinkRate(enumRatetoIndex(RATE_50HZ));
-    LockRFmode = true;
-#else
     SetRFLinkRate(RATE_DEFAULT);
-#endif
 
     Radio.RXnb();
     crsf.Begin();
@@ -882,14 +859,14 @@ void loop()
     {
         LostConnection();
         Serial.println("Bad sync, aborting");
-        Radio.SetFrequency(GetInitialFreq());
+        Radio.SetFrequencyReg(GetInitialFreq());
         Radio.RXnb();
         RFmodeLastCycled = millis();
         LastSyncPacket = millis();
     }
 
 #ifdef FAST_SYNC
-    if (millis() > (RFmodeLastCycled + (ExpressLRS_currAirRate_RFperfParams->RFmodeCycleInterval/RFmodeCycleDivisor))) 
+    if (millis() > (RFmodeLastCycled + (ExpressLRS_currAirRate_RFperfParams->RFmodeCycleInterval/RFmodeCycleDivisor)))
 #else
         if (millis() > (RFmodeLastCycled + (ExpressLRS_currAirRate_RFperfParams->RFmodeCycleInterval)))
 #endif
@@ -988,7 +965,7 @@ void loop()
     {
         config.SetPowerOnCounter(0);
         config.Commit();
-        
+
         Serial.println("Power on counter >=3, enter binding mode...");
         EnterBindingMode();
     }
@@ -1020,12 +997,12 @@ void loop()
                 bindLedFlashInterval = millis() + BIND_LED_FLASH_INTERVAL_LONG;
                 LEDPulseCounter = 0;
             }
-            
-            
+
+
             #ifdef GPIO_PIN_LED
             digitalWrite(GPIO_PIN_LED, LED);
             #endif
-            
+
             LEDPulseCounter++;
         }
     }
@@ -1056,7 +1033,7 @@ void EnterBindingMode()
     // Start attempting to bind
     // Lock the RF rate and freq while binding
     SetRFLinkRate(RATE_DEFAULT);
-    Radio.SetFrequency(GetInitialFreq());
+    Radio.SetFrequencyReg(GetInitialFreq());
 
     InBindingMode = true;
 
